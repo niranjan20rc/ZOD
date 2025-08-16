@@ -5,10 +5,12 @@ export default function Home() {
   const [name, setName] = useState("");
   const [names, setNames] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // ✅ loading state
 
   // Fetch all names
   const fetchNames = async () => {
     try {
+      setLoading(true); // start loading
       const res = await fetch("/api/names");
       const data = await res.json();
       if (Array.isArray(data)) {
@@ -19,6 +21,8 @@ export default function Home() {
       }
     } catch (err) {
       setError("Failed to fetch names");
+    } finally {
+      setLoading(false); // stop loading
     }
   };
 
@@ -33,6 +37,7 @@ export default function Home() {
     if (!name) return;
 
     try {
+      setLoading(true); // start loading
       const res = await fetch("/api/names", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -50,6 +55,8 @@ export default function Home() {
       fetchNames(); // refresh list
     } catch (err) {
       setError("Something went wrong");
+    } finally {
+      setLoading(false); // stop loading
     }
   };
 
@@ -66,20 +73,47 @@ export default function Home() {
           style={{ padding: "8px", marginRight: "10px" }}
         />
         <button type="submit" style={{ padding: "8px 12px" }}>
-          Add 
+          Add
         </button>
       </form>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <h2>Saved Data:</h2>
-      <ul>
-        {Array.isArray(names) && names.length > 0 ? (
-          names.map((n) => <li key={n._id}>{n.name}</li>)
-        ) : (
-          <li>No Data Found</li>
-        )}
-      </ul>
+      {loading ? (
+        // ✅ Spinner animation
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div
+            style={{
+              border: "4px solid #f3f3f3",
+              borderTop: "4px solid #3498db",
+              borderRadius: "50%",
+              width: "24px",
+              height: "24px",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <span>Loading...</span>
+          <style>
+            {`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}
+          </style>
+        </div>
+      ) : (
+        <>
+          <h2>Saved Data:</h2>
+          <ul>
+            {Array.isArray(names) && names.length > 0 ? (
+              names.map((n) => <li key={n._id}>{n.name}</li>)
+            ) : (
+              <li>No Data Found</li>
+            )}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
