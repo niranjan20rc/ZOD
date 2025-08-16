@@ -77,7 +77,7 @@ export default function Home() {
         {Array.isArray(names) && names.length > 0 ? (
           names.map((n) => <li key={n._id}>{n.name}</li>)
         ) : (
-          <li>No names found</li>
+          <li>No Data Found</li>
         )}
       </ul>
     </div>
