@@ -61,51 +61,39 @@ export default function Home() {
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
-      <h1>Text App</h1>
+    <div className="p-6 font-sans">
+      <h1 className="text-2xl font-bold mb-4">Text App</h1>
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="mb-4 flex gap-2">
         <input
           type="text"
           value={name}
           placeholder="Enter here"
           onChange={(e) => setName(e.target.value)}
-          style={{ padding: "8px", marginRight: "10px" }}
+          className="border px-3 py-2 rounded-md flex-1"
         />
-        <button type="submit" style={{ padding: "8px 12px" }}>
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+        >
           Add
         </button>
       </form>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {/* Error */}
+      {error && <p className="text-red-500 mb-2">{error}</p>}
 
+      {/* Loader */}
       {loading ? (
-        // ✅ Spinner animation
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div
-            style={{
-              border: "4px solid #f3f3f3",
-              borderTop: "4px solid #3498db",
-              borderRadius: "50%",
-              width: "24px",
-              height: "24px",
-              animation: "spin 1s linear infinite",
-            }}
-          />
-          <span>Loading...</span>
-          <style>
-            {`
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}
-          </style>
+        <div className="flex justify-center items-center py-6">
+          <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
         </div>
       ) : (
         <>
-          <h2>Saved Data:</h2>
-          <ul>
+          {/* Data List */}
+          <h2 className="text-xl font-semibold mb-2">Saved Data:</h2>
+          <ul className="list-disc pl-5">
             {Array.isArray(names) && names.length > 0 ? (
               names.map((n) => <li key={n._id}>{n.name}</li>)
             ) : (
