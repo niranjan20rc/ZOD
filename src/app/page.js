@@ -181,7 +181,7 @@ export default function PeoplePage() {
 
       {loading && <div style={spinnerStyle}></div>}
 
-      <h2 style={{ textAlign: "center", color: "#000" }}>👤 People Manager</h2>
+      <h2 style={{ textAlign: "center", color: "#000" }}>{"NEXT.JS    CRUD"}</h2>
 
       {/* Toggle Form Button */}
       {!showForm && (
