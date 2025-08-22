@@ -148,16 +148,16 @@ export default function PeoplePage() {
   const tableWrapperStyle = { overflowX: "auto" };
   const tableStyle = { width: "100%", borderCollapse: "collapse" };
   const thtdStyle = { border: "1px solid #ccc", padding: "10px", textAlign: "left" };
-  const thStyle = { ...thtdStyle, background: "#000", color: "#fff" };
+  const thStyle = { ...thtdStyle, background: "#000", color: "#fff", fontWeight: "bold" };
 
   // Responsive CSS
   const responsiveStyle = `
     @media (max-width: 700px) {
-      table, thead, tbody, th, td, tr { display: block; width: 100%; }
+      table, thead, tbody, th, td, tr { display: block; width: 100%; font-size: 12px; }
       thead { display: none; }
-      tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; }
-      td { border: none; text-align: left; padding: 6px 0; }
-      td:before { font-weight: bold; display: block; margin-bottom: 3px; color: #000; }
+      tr { margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; padding: 8px; }
+      td { border: none; text-align: left; padding: 4px 0; font-weight: bold; }
+      td:before { display: block; margin-bottom: 2px; color: #000; font-weight: bold; }
       td:nth-of-type(1):before { content: "S.No"; }
       td:nth-of-type(2):before { content: "Name"; }
       td:nth-of-type(3):before { content: "Age"; }
@@ -166,7 +166,8 @@ export default function PeoplePage() {
       td:nth-of-type(6):before { content: "City"; }
       td:nth-of-type(7):before { content: "Country"; }
       td:nth-of-type(8):before { content: "Actions"; }
-      input { width: 96% !important; margin: 6px 2% !important; }
+      input { width: 96% !important; margin: 4px 2% !important; padding: 6px !important; font-size: 12px; }
+      button { padding: 6px 10px !important; font-size: 12px !important; }
     }
 
     @keyframes spin {
@@ -181,16 +182,14 @@ export default function PeoplePage() {
 
       {loading && <div style={spinnerStyle}></div>}
 
-      <h2 style={{ textAlign: "center", color: "#000" }}>{"NEXT.JS    CRUD"}</h2>
+      <h2 style={{ textAlign: "center", color: "#000" }}>NEXT.JS CRUD</h2>
 
-      {/* Toggle Form Button */}
       {!showForm && (
         <button style={buttonBlack} onClick={() => setShowForm(true)}>
           ➕ Add User
         </button>
       )}
 
-      {/* Form */}
       {showForm && (
         <form style={formWrapper} onSubmit={handleSubmit}>
           <input
@@ -232,7 +231,7 @@ export default function PeoplePage() {
           />
           <div>
             <button type="submit" style={buttonBlack}>
-              {editingId ? "✏️ Update User" : " Add User"}
+              {editingId ? "✏️ Update User" : "➕ Add User"}
             </button>
             <button
               type="button"
@@ -243,13 +242,12 @@ export default function PeoplePage() {
                 setShowForm(false);
               }}
             >
-               Cancel
+              Cancel
             </button>
           </div>
         </form>
       )}
 
-      {/* Table */}
       <div style={tableWrapperStyle}>
         <table style={tableStyle}>
           <thead>
