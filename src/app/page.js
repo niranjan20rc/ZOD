@@ -5,6 +5,7 @@ export default function PeoplePage() {
   const [people, setPeople] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: "",
     age: "",
@@ -14,37 +15,54 @@ export default function PeoplePage() {
     country: "",
   });
 
-  // Fetch people
+  // Fetch people from API & update localStorage
   const fetchPeople = async () => {
-    const res = await fetch("/api/people");
-    const data = await res.json();
-    setPeople(data.items || []);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/people");
+      const data = await res.json();
+      const items = data.items || [];
+      setPeople(items);
+      localStorage.setItem("peopleCache", JSON.stringify(items));
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
   };
 
+  // Load from localStorage first for fast display
   useEffect(() => {
-    fetchPeople();
+    const cached = localStorage.getItem("peopleCache");
+    if (cached) setPeople(JSON.parse(cached));
+    fetchPeople(); // fetch fresh data
   }, []);
 
   // Add or Update person
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingId) {
-      await fetch(`/api/people/${editingId}`, {
-        method: "PUT",
-        body: JSON.stringify(form),
-        headers: { "Content-Type": "application/json" },
-      });
-    } else {
-      await fetch("/api/people", {
-        method: "POST",
-        body: JSON.stringify(form),
-        headers: { "Content-Type": "application/json" },
-      });
+    setLoading(true);
+    try {
+      if (editingId) {
+        await fetch(`/api/people/${editingId}`, {
+          method: "PUT",
+          body: JSON.stringify(form),
+          headers: { "Content-Type": "application/json" },
+        });
+      } else {
+        await fetch("/api/people", {
+          method: "POST",
+          body: JSON.stringify(form),
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      setForm({ name: "", age: "", email: "", phone: "", city: "", country: "" });
+      setEditingId(null);
+      setShowForm(false);
+      await fetchPeople();
+    } catch (err) {
+      console.error(err);
     }
-    setForm({ name: "", age: "", email: "", phone: "", city: "", country: "" });
-    setEditingId(null);
-    setShowForm(false);
-    fetchPeople();
+    setLoading(false);
   };
 
   // Edit person
@@ -63,8 +81,14 @@ export default function PeoplePage() {
 
   // Delete person
   const deletePerson = async (id) => {
-    await fetch(`/api/people/${id}`, { method: "DELETE" });
-    fetchPeople();
+    setLoading(true);
+    try {
+      await fetch(`/api/people/${id}`, { method: "DELETE" });
+      await fetchPeople();
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
   };
 
   // ---------- Inline Styles ----------
@@ -73,6 +97,21 @@ export default function PeoplePage() {
     margin: "20px auto",
     padding: "10px",
     fontFamily: "Arial, sans-serif",
+    position: "relative",
+  };
+
+  const spinnerStyle = {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    border: "6px solid #f3f3f3",
+    borderTop: "6px solid #000",
+    borderRadius: "50%",
+    width: "50px",
+    height: "50px",
+    animation: "spin 1s linear infinite",
+    zIndex: 9999,
   };
 
   const formWrapper = {
@@ -127,12 +166,21 @@ export default function PeoplePage() {
       td:nth-of-type(6):before { content: "City"; }
       td:nth-of-type(7):before { content: "Country"; }
       td:nth-of-type(8):before { content: "Actions"; }
+      input { width: 96% !important; margin: 6px 2% !important; }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   `;
 
   return (
     <div style={containerStyle}>
       <style>{responsiveStyle}</style>
+
+      {loading && <div style={spinnerStyle}></div>}
+
       <h2 style={{ textAlign: "center", color: "#000" }}>👤 People Manager</h2>
 
       {/* Toggle Form Button */}
@@ -184,7 +232,7 @@ export default function PeoplePage() {
           />
           <div>
             <button type="submit" style={buttonBlack}>
-              {editingId ? "✏️ Update User" : "✅ Add User"}
+              {editingId ? "✏️ Update User" : " Add User"}
             </button>
             <button
               type="button"
@@ -195,7 +243,7 @@ export default function PeoplePage() {
                 setShowForm(false);
               }}
             >
-              ❌ Cancel
+               Cancel
             </button>
           </div>
         </form>
