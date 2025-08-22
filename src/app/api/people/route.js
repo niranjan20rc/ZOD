@@ -18,7 +18,7 @@ export async function GET(req) {
       }
     : {};
 
-  const people = await Person.find(query).sort({ createdAt: -1 });
+  const people = await Person.find(query);
   return Response.json({ items: people });
 }
 
