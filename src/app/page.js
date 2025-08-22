@@ -1,107 +1,252 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function Home() {
-  const [name, setName] = useState("");
-  const [names, setNames] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // ✅ loading state
+export default function PeoplePage() {
+  const [people, setPeople] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({
+    name: "",
+    age: "",
+    email: "",
+    phone: "",
+    city: "",
+    country: "",
+  });
 
-  // Fetch all names
-  const fetchNames = async () => {
-    try {
-      setLoading(true); // start loading
-      const res = await fetch("/api/names");
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setNames(data);
-      } else {
-        setNames([]);
-        setError("Unexpected API response");
-      }
-    } catch (err) {
-      setError("Failed to fetch names");
-    } finally {
-      setLoading(false); // stop loading
-    }
+  // Fetch people
+  const fetchPeople = async () => {
+    const res = await fetch("/api/people");
+    const data = await res.json();
+    setPeople(data.items || []);
   };
 
-  // On mount → load names
   useEffect(() => {
-    fetchNames();
+    fetchPeople();
   }, []);
 
-  // Handle form submit
+  // Add or Update person
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name) return;
-
-    try {
-      setLoading(true); // start loading
-      const res = await fetch("/api/names", {
-        method: "POST",
+    if (editingId) {
+      await fetch(`/api/people/${editingId}`, {
+        method: "PUT",
+        body: JSON.stringify(form),
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        setError(errData.error || "Failed to add name");
-        return;
-      }
-
-      setName(""); // reset input
-      setError("");
-      fetchNames(); // refresh list
-    } catch (err) {
-      setError("Something went wrong");
-    } finally {
-      setLoading(false); // stop loading
+    } else {
+      await fetch("/api/people", {
+        method: "POST",
+        body: JSON.stringify(form),
+        headers: { "Content-Type": "application/json" },
+      });
     }
+    setForm({ name: "", age: "", email: "", phone: "", city: "", country: "" });
+    setEditingId(null);
+    setShowForm(false);
+    fetchPeople();
   };
 
+  // Edit person
+  const editPerson = (person) => {
+    setForm({
+      name: person.name,
+      age: person.age,
+      email: person.email,
+      phone: person.phone,
+      city: person.city,
+      country: person.country,
+    });
+    setEditingId(person._id);
+    setShowForm(true);
+  };
+
+  // Delete person
+  const deletePerson = async (id) => {
+    await fetch(`/api/people/${id}`, { method: "DELETE" });
+    fetchPeople();
+  };
+
+  // ---------- Inline Styles ----------
+  const containerStyle = {
+    maxWidth: "950px",
+    margin: "20px auto",
+    padding: "10px",
+    fontFamily: "Arial, sans-serif",
+  };
+
+  const formWrapper = {
+    marginBottom: "30px",
+    padding: "15px",
+    border: "1px solid #ddd",
+    borderRadius: "8px",
+    background: "#f9f9f9",
+  };
+
+  const inputStyle = {
+    width: "48%",
+    padding: "10px",
+    margin: "6px 1%",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    fontSize: "14px",
+    boxSizing: "border-box",
+  };
+
+  const buttonBase = {
+    margin: "5px 2px",
+    padding: "8px 12px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    transition: "0.2s",
+    border: "1px solid #000",
+  };
+
+  const buttonBlack = { ...buttonBase, background: "#000", color: "#fff" };
+  const buttonWhite = { ...buttonBase, background: "#fff", color: "#000" };
+
+  const tableWrapperStyle = { overflowX: "auto" };
+  const tableStyle = { width: "100%", borderCollapse: "collapse" };
+  const thtdStyle = { border: "1px solid #ccc", padding: "10px", textAlign: "left" };
+  const thStyle = { ...thtdStyle, background: "#000", color: "#fff" };
+
+  // Responsive CSS
+  const responsiveStyle = `
+    @media (max-width: 700px) {
+      table, thead, tbody, th, td, tr { display: block; width: 100%; }
+      thead { display: none; }
+      tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; }
+      td { border: none; text-align: left; padding: 6px 0; }
+      td:before { font-weight: bold; display: block; margin-bottom: 3px; color: #000; }
+      td:nth-of-type(1):before { content: "S.No"; }
+      td:nth-of-type(2):before { content: "Name"; }
+      td:nth-of-type(3):before { content: "Age"; }
+      td:nth-of-type(4):before { content: "Email"; }
+      td:nth-of-type(5):before { content: "Phone"; }
+      td:nth-of-type(6):before { content: "City"; }
+      td:nth-of-type(7):before { content: "Country"; }
+      td:nth-of-type(8):before { content: "Actions"; }
+    }
+  `;
+
   return (
-    <div className="p-6 font-sans">
-      <h1 className="text-2xl font-bold mb-4">Text App</h1>
+    <div style={containerStyle}>
+      <style>{responsiveStyle}</style>
+      <h2 style={{ textAlign: "center", color: "#000" }}>👤 People Manager</h2>
+
+      {/* Toggle Form Button */}
+      {!showForm && (
+        <button style={buttonBlack} onClick={() => setShowForm(true)}>
+          ➕ Add User
+        </button>
+      )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="mb-4 flex gap-2">
-        <input
-          type="text"
-          value={name}
-          placeholder="Enter here"
-          onChange={(e) => setName(e.target.value)}
-          className="border px-3 py-2 rounded-md flex-1"
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-        >
-          Add
-        </button>
-      </form>
-
-      {/* Error */}
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-
-      {/* Loader */}
-      {loading ? (
-        <div className="flex justify-center items-center py-6">
-          <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-        </div>
-      ) : (
-        <>
-          {/* Data List */}
-          <h2 className="text-xl font-semibold mb-2">Saved Data:</h2>
-          <ul className="list-disc pl-5">
-            {Array.isArray(names) && names.length > 0 ? (
-              names.map((n) => <li key={n._id}>{n.name}</li>)
-            ) : (
-              <li>No Data Found</li>
-            )}
-          </ul>
-        </>
+      {showForm && (
+        <form style={formWrapper} onSubmit={handleSubmit}>
+          <input
+            style={inputStyle}
+            placeholder="Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <input
+            style={inputStyle}
+            placeholder="Age"
+            type="number"
+            value={form.age}
+            onChange={(e) => setForm({ ...form, age: e.target.value })}
+          />
+          <input
+            style={inputStyle}
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <input
+            style={inputStyle}
+            placeholder="Phone"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          />
+          <input
+            style={inputStyle}
+            placeholder="City"
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+          />
+          <input
+            style={inputStyle}
+            placeholder="Country"
+            value={form.country}
+            onChange={(e) => setForm({ ...form, country: e.target.value })}
+          />
+          <div>
+            <button type="submit" style={buttonBlack}>
+              {editingId ? "✏️ Update User" : "✅ Add User"}
+            </button>
+            <button
+              type="button"
+              style={buttonWhite}
+              onClick={() => {
+                setForm({ name: "", age: "", email: "", phone: "", city: "", country: "" });
+                setEditingId(null);
+                setShowForm(false);
+              }}
+            >
+              ❌ Cancel
+            </button>
+          </div>
+        </form>
       )}
+
+      {/* Table */}
+      <div style={tableWrapperStyle}>
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thStyle}>S.No</th>
+              <th style={thStyle}>Name</th>
+              <th style={thStyle}>Age</th>
+              <th style={thStyle}>Email</th>
+              <th style={thStyle}>Phone</th>
+              <th style={thStyle}>City</th>
+              <th style={thStyle}>Country</th>
+              <th style={thStyle}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {people.length > 0 ? (
+              people.map((p, i) => (
+                <tr key={p._id}>
+                  <td style={thtdStyle}>{i + 1}</td>
+                  <td style={thtdStyle}>{p.name}</td>
+                  <td style={thtdStyle}>{p.age}</td>
+                  <td style={thtdStyle}>{p.email}</td>
+                  <td style={thtdStyle}>{p.phone}</td>
+                  <td style={thtdStyle}>{p.city}</td>
+                  <td style={thtdStyle}>{p.country}</td>
+                  <td style={thtdStyle}>
+                    <button style={buttonBlack} onClick={() => editPerson(p)}>
+                      Edit
+                    </button>
+                    <button style={buttonWhite} onClick={() => deletePerson(p._id)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td style={thtdStyle} colSpan="8" align="center">
+                  No people found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
